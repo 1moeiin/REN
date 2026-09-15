@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+{% load static i18n site_extras %}
+
+{% block title %}{{ site.company_name }} — {{ site|t:"tagline" }}{% endblock %}
+
+{% block head %}
+{% if site.hero_image %}
+  {% comment %}
+    The film can't start before its render is on screen. The page's scripts
+    sit at the end of the body and wait behind the stylesheets, so fetch the
+    render and the modules that drive it from here, in parallel with the CSS.
+    type="image/webp" matches the <source> the hero's <picture> will pick.
+  {% endcomment %}
+  {% if site.hero_image|webp %}
+    <link rel="preload" as="image" href="{{ site.hero_image|webp }}" type="image/webp" fetchpriority="high">
+  {% else %}
+    <link rel="preload" as="image" href="{{ site.hero_image.url }}" fetchpriority="high">
+  {% endif %}
+  {# modulepreload doesn't pull in dependencies, so GSAP's own imports are listed too #}
+  <link rel="modulepreload" href="{% static 'vendor/gsap/index.js' %}">
+  <link rel="modulepreload" href="{% static 'vendor/gsap/gsap-core.js' %}">
+  <link rel="modulepreload" href="{% static 'vendor/gsap/CSSPlugin.js' %}">
+  <link rel="modulepreload" href="{% static 'vendor/gsap/ScrollTrigger.js' %}">
+  <link rel="modulepreload" href="{% static 'vendor/gsap/Observer.js' %}">
+  <link rel="modulepreload" href="{% static 'js/cinematic-hero.js' %}">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if site.hero_image %}
+{% comment %}
+  Hero A — the uploaded render, filmed: a scroll-driven camera move down the
+  building, with the title over its opening shot and the process steps below
+  its clouds (see _cinematic_hero.html). No 3D on this path, so three.js is
+  never loaded.
+{% endcomment %}
+{% include "main/_cinematic_hero.html" %}
+
+{% else %}
+{% comment %}
+  Hero B — no photo uploaded, so a procedural 3D tower stands in. Keeps the
+  page from ever rendering an empty hero.
+{% endcomment %}
+<section id="hero" class="relative h-[280vh] border-b border-border bg-background">
+  <div class="sticky top-0 h-screen overflow-hidden">
+    <canvas id="hero-canvas" class="absolute inset-0 h-full w-full"></canvas>
+
+    <div class="pointer-events-none absolute inset-0 bg-background/45"></div>
+
+    <div class="container-x relative flex h-full items-center">
+      {% include "main/_hero_copy.html" %}
+    </div>
+
+    <div id="scroll-cue" class="absolute inset-x-0 bottom-10 flex flex-col items-center gap-3 text-muted-foreground">
+      <span class="font-mono text-[0.65rem] tracking-[0.3em] uppercase">{% translate "Kaydırın" %}</span>
+      <svg class="h-4 w-4 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ---------- Services ---------- #}
+{% if services %}
+<section class="section">
+  {% include "main/_services.html" %}
+</section>
+{% endif %}
+
+{# ---------- Featured projects ---------- #}
+{% if projects %}
+<section class="section border-t border-border bg-card">
+  <div class="container-x text-center">
+    <p class="eyebrow justify-center">{% translate "Seçili İşler" %}</p>
+    <h2 class="h2 mx-auto max-w-3xl">{% translate "Öne çıkan projeler" %}</h2>
+
+    <div class="mt-20 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+      {% for project in projects %}
+        {% include "main/_project_card.html" with project=project %}
+      {% endfor %}
+    </div>
+
+    <a href="{% url 'main:project_list' %}" class="btn-ghost mt-16">{% translate "Tüm projeler" %}</a>
+  </div>
+</section>
+{% endif %}
+
+{# ---------- Scroll-reveal image masks ---------- #}
+{% if reveals %}
+<section class="section">
+  <div class="mx-auto max-w-5xl space-y-16 px-6 text-center md:space-y-28">
+    {% for item in reveals %}
+      {% include "main/_reveal_image.html" with src=item.src alt=item.alt title=item.title caption=item.caption eyebrow=item.eyebrow shape=item.shape %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ---------- Before / after comparison ---------- #}
+{% if comparison %}
+<section class="section border-t border-border">
+  <div class="container-x text-center">
+    <p class="eyebrow justify-center">{% translate "Öncesi / Sonrası" %}</p>
+    <h2 class="h2 mx-auto max-w-3xl">{{ comparison|t:"title" }}</h2>
+    <p class="mx-auto mt-5 max-w-2xl leading-relaxed text-muted-foreground">{{ comparison|t:"summary" }}</p>
+    <div class="mx-auto mt-14 max-w-5xl">
+      {% include "main/_before_after.html" with project=comparison %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ---------- Process timeline — the photo hero shows it below its clouds ---------- #}
+{% if steps and not site.hero_image %}
+<section class="section border-t border-border bg-card">
+  {% include "main/_process.html" %}
+</section>
+{% endif %}
+
+{# ---------- References ---------- #}
+{% if clients or certificates %}
+<section class="section border-t border-border">
+  {% include "main/_references.html" %}
+</section>
+{% endif %}
+
+{# ---------- CTA ---------- #}
+<section class="border-t border-border bg-ink">
+  <div class="container-x py-28 text-center sm:py-40">
+    <p class="eyebrow justify-center text-white/40">{% translate "Başlayalım" %}</p>
+    <h2 class="mx-auto max-w-3xl font-display text-4xl leading-[1.05] font-medium tracking-[-0.04em] text-white sm:text-6xl">
+      {% translate "Aklınızda bir proje mi var?" %}
+    </h2>
+    <p class="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-white/55">
+      Ekibimiz projenizin tasarımını, maliyet tahminini ve uygulama takvimini
+      değerlendirmeye hazır.
+    </p>
+    <a href="{% url 'main:contact' %}" class="btn-invert mt-10">{% translate "Görüşme başlatın" %}</a>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger.js";
+{% if site.hero_image %}
+  import { initCinematicHero } from "{% static 'js/cinematic-hero.js' %}";
+{% endif %}
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Settles once the film has started, or decided not to — see the stat counters.
+  let heroReady = Promise.resolve();
+
+{% if site.hero_image %}
+  /* ============ Cinematic hero ============
+     The film is its own module (static/js/cinematic-hero.js), and so is the
+     title over its opening shot: the module brings the copy in with the render
+     and clears it before the clouds. It handles reduced motion itself, leaving
+     the still hero the CSS already renders. */
+  heroReady = initCinematicHero(document.getElementById("hero"), { gsap, ScrollTrigger });
+{% else %}
+  if (!reducedMotion) {
+    gsap.from("#hero-copy > *", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.1 });
+
+    // Copy and cue clear out as they leave the first screen. Anchored to the
+    // elements themselves, not to a percentage of #hero — that section now
+    // also carries the services panel, so its height is no longer one screen.
+    gsap.to("#hero-copy", {
+      opacity: 0, y: -40, ease: "none",
+      scrollTrigger: { trigger: "#hero-copy", start: "top top", end: "bottom top", scrub: 0.4 },
+    });
+    gsap.to("#scroll-cue", {
+      opacity: 0, ease: "none",
+      scrollTrigger: { trigger: "#scroll-cue", start: "top 80%", end: "top 30%", scrub: 0.4 },
+    });
+  } else {
+    document.getElementById("scroll-cue")?.remove();
+  }
+
+  /* ============ No photo: procedural 3D tower ============ */
+  // Loaded on demand: this branch only ships when there is no hero photo, so
+  // the photo path never pays for three.js. three's ESM has named exports only,
+  // hence the namespace object rather than a default import.
+  const THREE = await import("three");
+  const canvas = document.getElementById("hero-canvas");
+  const hero = document.getElementById("hero");
+
+  function initTower() {
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    } catch {
+      // No WebGL — collapse the tall track so the visitor isn't scrolling
+      // through empty screens to reach the next section.
+      hero.classList.replace("h-[280vh]", "h-screen");
+      document.getElementById("scroll-cue")?.remove();
+      canvas.remove();
+      return;
+    }
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
+    const render = () => renderer.render(scene, camera);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xd4d4d1, 2.1));
+    const key = new THREE.DirectionalLight(0xffffff, 2.4);
+    key.position.set(6, 12, 8);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xa8875a, 0.5); // warm accent bounce
+    fill.position.set(-8, 3, -6);
+    scene.add(fill);
+
+    // rig   — scroll owns this (descent + revolution)
+    // tower — idle drift lives here, so the two compose instead of fighting:
+    //         ScrollTrigger writes absolute values and would wipe an increment.
+    const rig = new THREE.Group();
+    scene.add(rig);
+
+    const W = 3.4, H = 9.4, D = 2.8;
+    const FLOORS = 11, FLOOR_H = 0.78;
+
+    const concrete = new THREE.MeshStandardMaterial({ color: 0xf4f4f2, roughness: 0.85, metalness: 0.02 });
+    const frame = new THREE.MeshStandardMaterial({ color: 0x9a9a97, roughness: 0.5, metalness: 0.35 });
+    const glass = new THREE.MeshStandardMaterial({
+      color: 0x8fa3b0, roughness: 0.08, metalness: 0.5, transparent: true, opacity: 0.55,
+    });
+    const accent = new THREE.MeshStandardMaterial({ color: 0xa8875a, roughness: 0.6 });
+
+    const tower = new THREE.Group();
+
+    // Reused geometries — one allocation each, not one per floor.
+    const slabGeo = new THREE.BoxGeometry(W + 0.5, 0.1, D + 0.5);
+    const glassGeo = new THREE.BoxGeometry(W, FLOOR_H - 0.14, D);
+    const railGeo = new THREE.BoxGeometry(W + 0.46, 0.28, 0.06);
+    const finGeo = new THREE.BoxGeometry(0.1, FLOOR_H, 0.1);
+
+    // Centre the stack on the group's origin so it spins about its own axis.
+    const base = -(FLOORS * FLOOR_H) / 2;
+
+    for (let i = 0; i < FLOORS; i++) {
+      const y = base + i * FLOOR_H;
+
+      const slab = new THREE.Mesh(slabGeo, concrete);
+      slab.position.y = y;
+      tower.add(slab);
+
+      const shell = new THREE.Mesh(glassGeo, glass);
+      shell.position.y = y + FLOOR_H / 2;
+      tower.add(shell);
+
+      // Balconies alternate front/back so the facade isn't a flat repeat.
+      const rail = new THREE.Mesh(railGeo, frame);
+      rail.position.set(0, y + 0.2, (i % 2 ? -1 : 1) * (D / 2 + 0.22));
+      tower.add(rail);
+
+      for (const sx of [-1, 1]) {
+        const fin = new THREE.Mesh(finGeo, frame);
+        fin.position.set(sx * (W / 2 + 0.06), y + FLOOR_H / 2, D / 2 + 0.04);
+        tower.add(fin);
+      }
+    }
+
+    const lobby = new THREE.Mesh(new THREE.BoxGeometry(W + 0.2, 0.9, D + 0.2), glass);
+    lobby.position.y = base - 0.55;
+    tower.add(lobby);
+
+    const canopy = new THREE.Mesh(new THREE.BoxGeometry(W + 1.4, 0.08, 1.1), accent);
+    canopy.position.set(0, base - 0.12, D / 2 + 0.5);
+    tower.add(canopy);
+
+    const parapet = new THREE.Mesh(new THREE.BoxGeometry(W + 0.5, 0.34, D + 0.5), concrete);
+    parapet.position.y = base + FLOORS * FLOOR_H + 0.1;
+    tower.add(parapet);
+
+    const plantRoom = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 1.2), concrete);
+    plantRoom.position.y = base + FLOORS * FLOOR_H + 0.55;
+    tower.add(plantRoom);
+
+    rig.add(tower);
+
+    function layout() {
+      const { clientWidth: w, clientHeight: h } = canvas;
+      if (!w || !h) return;
+
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+
+      // Pull back far enough that the tower fits with headroom: at fov 38° the
+      // visible height is 2·dist·tan(19°). Once it turns, the corner-to-corner
+      // diagonal is what has to fit, so size off hypot(W, D), not W alone.
+      // The copy is centred now, so the tower is centred too — no camera offset.
+      const span = Math.hypot(H, Math.hypot(W, D));
+      const dist = (span * 1.2) / (2 * Math.tan((38 / 2) * Math.PI / 180));
+
+      camera.position.set(0, 1.4, w >= 1024 ? dist : dist * 1.3);
+      camera.lookAt(0, 0, 0);
+
+      render();
+    }
+
+    if (reducedMotion) {
+      rig.rotation.y = -0.5;
+      addEventListener("resize", layout);
+      layout();
+      return;
+    }
+
+    const track = { trigger: "#hero", start: "top top", end: "bottom bottom", scrub: 0.6 };
+
+    gsap.fromTo(rig.position, { y: 3.4 },
+      { y: -6.2, ease: "none", scrollTrigger: { ...track, invalidateOnRefresh: true } });
+    gsap.fromTo(rig.rotation, { y: -0.5 },
+      { y: -0.5 + Math.PI * 2, ease: "none", scrollTrigger: { ...track } });
+
+    // Idle drift on the inner mesh, so it is alive even when nobody scrolls.
+    gsap.ticker.add(() => {
+      tower.rotation.y += 0.0016;
+      render();
+    });
+
+    addEventListener("resize", () => { layout(); ScrollTrigger.refresh(); });
+    layout();
+  }
+
+  initTower();
+{% endif %}
+
+  /* ============ Reveal-image masks ============
+     Port of the framer-motion component: it drove a clip-path with
+     useScroll + useSpring + useTransform. ScrollTrigger's numeric `scrub`
+     is the equivalent smoothing, and it interpolates the numbers inside the
+     clip-path string, so the shape can be animated as a plain value. */
+  for (const card of document.querySelectorAll(".reveal-mask")) {
+    const frame = card.querySelector(".reveal-mask__frame");
+    const word = card.querySelector(".reveal-mask__word");
+    const circle = card.dataset.shape !== "rounded";
+
+    if (reducedMotion) {
+      frame.style.clipPath = circle ? "circle(75% at 50% 50%)" : "inset(0% round 0%)";
+      if (word) word.style.opacity = "1";
+      continue;
+    }
+
+    gsap.fromTo(frame,
+      { clipPath: circle ? "circle(16% at 50% 50%)" : "inset(30% round 10%)" },
+      {
+        clipPath: circle ? "circle(75% at 50% 50%)" : "inset(0% round 0%)",
+        ease: "none",
+        scrollTrigger: {
+          trigger: card,
+          start: "top 85%",   // matches the component's offset ["start 85%", …]
+          end: "bottom 15%",  // … ["…", "end 15%"]
+          scrub: 0.8,
+        },
+      },
+    );
+
+    // Wordmark fades in over a later, shorter range than the mask, so the image
+    // has already opened underneath by the time the letters resolve.
+    if (word) {
+      gsap.fromTo(word,
+        { opacity: 0, scale: 1.18 },
+        {
+          opacity: 1, scale: 1, ease: "none",
+          scrollTrigger: { trigger: card, start: "top 55%", end: "bottom 45%", scrub: 0.8 },
+        },
+      );
+    }
+  }
+
+  /* ============ Stat counters ============
+     Runs the rendered number up from zero the first time it is seen. The final
+     value is already in the DOM, so this only ever replaces text it will
+     restore — nothing is lost if the animation never runs. Over the film the
+     strip is on screen from the first frame but fades in with the title, so
+     those counters wait for the film rather than for a scroll position. */
+  const nf = new Intl.NumberFormat(document.documentElement.lang || "tr");
+  for (const el of document.querySelectorAll("[data-count]")) {
+    const target = Number(el.dataset.count) || 0;
+    const suffix = el.dataset.suffix || "";
+    if (reducedMotion || !target) continue;
+
+    const box = { n: 0 };
+    const count = {
+      n: target, duration: 1.6, ease: "power2.out",
+      onUpdate: () => { el.textContent = nf.format(Math.round(box.n)) + suffix; },
+    };
+    if (el.closest(".cine__title")) {
+      // 0.9s: when the title's entrance reaches the strip.
+      heroReady.then(() => gsap.to(box, { ...count, delay: 0.9 }));
+    } else {
+      gsap.to(box, { ...count, scrollTrigger: { trigger: el, start: "top 90%", once: true } });
+    }
+  }
+
+  /* ============ Before / after comparison ============
+     Draggable moves the handle; the after-layer's inset() clip follows it, so
+     the two images meet exactly under the bar. */
+  for (const ba of document.querySelectorAll("[data-ba]")) {
+    const stage = ba.querySelector(".ba__stage");
+    const handle = ba.querySelector(".ba__handle");
+    const after = ba.querySelector(".ba__after");
+
+    const apply = (pct) => {
+      const p = Math.min(100, Math.max(0, pct));
+      after.style.clipPath = `inset(0 0 0 ${p}%)`;
+      handle.style.left = `${p}%`;
+    };
+    apply(50);
+
+    const pctFromEvent = (clientX) => {
+      const r = stage.getBoundingClientRect();
+      return ((clientX - r.left) / r.width) * 100;
+    };
+
+    // Click/tap anywhere on the stage jumps the divider there.
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".ba__handle")) return;
+      apply(pctFromEvent(e.clientX));
+    });
+
+    if (!reducedMotion) {
+      const { Draggable } = await import("gsap/Draggable.js");
+      gsap.registerPlugin(Draggable);
+      Draggable.create(handle, {
+        type: "x",
+        bounds: stage,
+        // The handle is positioned in %, so read the pointer instead of x.
+        onDrag() { apply(pctFromEvent(this.pointerX)); },
+        onPress() { apply(pctFromEvent(this.pointerX)); },
+      });
+    }
+  }
+
+  /* Cards rise as they enter — one trigger per element, fired once. */
+  if (!reducedMotion) {
+    gsap.utils.toArray("[data-rise]").forEach((el) => {
+      gsap.from(el, {
+        y: 30, opacity: 0, duration: 0.8, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 88%", once: true },
+      });
+    });
+  }
+</script>
+{% endblock %}

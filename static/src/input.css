@@ -1,0 +1,539 @@
+@import "tailwindcss";
+
+/* Tailwind v4 detects sources relative to this file. Django keeps templates
+   outside static/, so point at them explicitly — otherwise classes used only in
+   templates get purged out of the build. Paths are relative to this file. */
+@source "../../templates";
+@source "../../main/templates";
+@source "../../main/forms.py";
+@source "../js";
+
+/* v4 is CSS-first: theme tokens are custom properties, no tailwind.config.js.
+   Editorial-industrial system: near-black ink on warm paper, one brass accent,
+   hairline rules instead of boxed cards. Space Grotesk + Inter both carry the
+   Latin Extended set Turkish needs (ğ ı ş ç ö ü). */
+@theme {
+  --color-ink: #0a0a0b;
+  --color-background: #fafaf9;
+  --color-card: #ffffff;
+  --color-foreground: #3f3f46;
+  --color-muted: #f4f4f2;
+  --color-muted-foreground: #71717a;
+  --color-border: #e4e4e2;
+  --color-hairline: #d4d4d1;
+
+  /* Brass: the gold of the hero render's LED strips, deepened so it holds up
+     on both the paper and the ink sections. */
+  --color-accent: #a8875a;
+  --color-accent-dark: #8c6e45;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+
+  --text-display: clamp(2.75rem, 7vw, 5.5rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.04em;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Display type is set tight; body copy stays open for reading. */
+  h1, h2, h3 {
+    @apply font-display text-ink;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    line-height: 1.75;
+  }
+
+  ::selection {
+    @apply bg-accent text-white;
+  }
+
+  /* Keyboard focus must stay visible — the accessibility checklist calls for it. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+/* `@utility` (not `@layer components`) — in v4 only a real utility can be the
+   target of `@apply`, which is how btn-accent/btn-ghost build on btn. */
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-7 py-3.5
+         text-sm font-medium tracking-tight transition duration-200;
+}
+@utility btn-accent {
+  @apply btn bg-accent text-white hover:bg-accent-dark;
+}
+@utility btn-ghost {
+  @apply btn border border-hairline bg-transparent text-ink hover:border-ink;
+}
+@utility btn-invert {
+  @apply btn bg-white text-ink hover:bg-white/85;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[88rem] px-6 sm:px-10;
+  }
+  .section {
+    @apply py-24 sm:py-36;
+  }
+  /* Small caps label with a leading rule — the section marker used throughout. */
+  .eyebrow {
+    @apply mb-5 flex items-center gap-3 font-mono text-[0.7rem] tracking-[0.25em] text-muted-foreground uppercase;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply inline-block h-px w-8 bg-accent;
+  }
+  .h2 {
+    @apply font-display text-4xl leading-[1.05] font-medium text-ink sm:text-6xl;
+    letter-spacing: -0.04em;
+  }
+  /* Numeric labels (01 / 02 / 03) that mark a sequence. */
+  .index-num {
+    @apply font-mono text-xs text-accent tabular-nums;
+  }
+}
+
+/* ============ Cinematic hero (main/_cinematic_hero.html) ============
+   Progressive enhancement. The default rules below are the still version —
+   what visitors without JS or with reduced motion get: one screen, the
+   building with the headline over it. The film only switches on under
+   `.cine-js` (set by an inline script in the partial) when motion is allowed,
+   and every moving value from there on is written by
+   static/js/cinematic-hero.js. */
+@layer components {
+  .cine {
+    --cine-ink: var(--color-ink); /* the steps' ground — no seam where they meet the shot */
+    --cine-track: 500vh; /* the length of the shot, in scroll */
+    position: relative;
+    background: var(--cine-ink);
+  }
+  .cine__stage {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    contain: layout paint;
+    isolation: isolate;
+    background: #0d1a3a;
+  }
+  .cine__stage > *,
+  .cine__intro {
+    position: absolute;
+    inset: 0;
+  }
+  .cine__camera {
+    position: absolute;
+    inset: 0;
+  }
+  .cine__plate {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0%;
+  }
+
+  /* Sky-only copy of the render (JS adds it). Three mask layers — the two
+     flanks down to the horizon and the strip over the crown — add up to
+     "everything that is sky", so the tower itself is never in it. */
+  .cine__sky {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    --flank: linear-gradient(#000 calc(var(--cine-horizon) - 5%), transparent var(--cine-horizon));
+    -webkit-mask-image: var(--flank), var(--flank),
+      linear-gradient(#000 calc(var(--cine-crown) - 1.5%), transparent var(--cine-crown));
+    mask-image: var(--flank), var(--flank),
+      linear-gradient(#000 calc(var(--cine-crown) - 1.5%), transparent var(--cine-crown));
+    -webkit-mask-size: var(--cine-tower-l) 100%, calc(100% - var(--cine-tower-r)) 100%, 100% 100%;
+    mask-size: var(--cine-tower-l) 100%, calc(100% - var(--cine-tower-r)) 100%, 100% 100%;
+    -webkit-mask-position: 0 0, 100% 0, 0 0;
+    mask-position: 0 0, 100% 0, 0 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  .cine__sky img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    height: auto;
+  }
+
+  .cine__haze,
+  .cine__cloud,
+  .cine__cue {
+    display: none;
+  }
+  .cine__haze {
+    background: linear-gradient(to bottom, rgb(46 48 80 / 0.15), rgb(58 58 90 / 0.9));
+  }
+  .cine__clouds {
+    pointer-events: none;
+  }
+  .cine__cloud {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(150vw, 200vh);
+    max-width: none;
+    height: auto;
+  }
+  .cine__cloud[data-cloud^="near"] {
+    width: max(210vw, 260vh);
+  }
+  .cine__fog {
+    position: absolute;
+    inset: -5%;
+  }
+  .cine__fog--back {
+    background: radial-gradient(120% 90% at 50% 55%, #4c4c6c 0%, #34354f 55%, #1f2036 100%);
+    opacity: 0.4;
+  }
+  .cine__fog--front {
+    display: none;
+    background: radial-gradient(95% 75% at 50% 50%, #67668a 0%, #45455f 55%, #27283e 100%);
+  }
+
+  /* The wordmark: brand face, set wide. padding-left balances the tracking
+     that follows the last letter, so the word centres optically. */
+  .cine__ren {
+    position: absolute;
+    inset: 0;
+    display: none; /* the still hero leads with the title instead */
+    place-items: center;
+    margin: 0;
+    line-height: 1;
+  }
+  .cine__ren span {
+    padding-left: 0.4em;
+    font-family: var(--font-display);
+    font-size: clamp(4.25rem, 16vw, 16rem);
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    color: #f6f1e7;
+    text-shadow: 0 0 0.35em rgb(255 214 160 / 0.22);
+  }
+
+  /* The title: the hero copy over the opening shot, in the sky above the
+     clouds. A soft pool of shade behind it keeps the facade's lit lines from
+     cutting through the type, and leaves with it. The padding clears the
+     header above (two rows on phones) and the scroll cue below. */
+  .cine__title {
+    display: grid;
+    place-items: center;
+    padding: 7.5rem 1.5rem 6.5rem;
+    isolation: isolate;
+  }
+  .cine__title::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(80% 44% at 50% 52%, rgb(4 5 10 / 0.62), rgb(4 5 10 / 0.3) 55%, rgb(4 5 10 / 0));
+  }
+  .cine__title :is(h1, p) {
+    text-shadow: 0 2px 28px rgb(0 0 0 / 0.5);
+  }
+  @media (min-width: 768px) {
+    .cine__title {
+      /* More room above than below: the card sits under the lit crown. */
+      padding: 8rem 2.5rem 5.5rem;
+    }
+  }
+
+  /* The steps. In the still version they simply follow the stage, on ink. */
+  .cine__steps-inner {
+    position: relative;
+    isolation: isolate;
+    padding-block: 5.5rem;
+  }
+
+  .cine__grade {
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgb(4 5 10 / 0.5), rgb(4 5 10 / 0) 24%),
+      radial-gradient(130% 100% at 50% 45%, rgb(4 5 10 / 0) 55%, rgb(4 5 10 / 0.6) 100%);
+  }
+  .cine__ground {
+    top: auto;
+    height: 45%;
+    background: linear-gradient(to top, var(--cine-ink) 6%, rgb(10 10 11 / 0));
+    transform-origin: 50% 100%;
+  }
+
+  .cine__cue {
+    top: auto;
+    right: auto;
+    bottom: max(1.75rem, env(safe-area-inset-bottom));
+    left: 50%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    translate: -50% 0;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.6);
+  }
+  .cine__cue-line {
+    position: relative;
+    width: 1px;
+    height: 3rem;
+    overflow: hidden;
+    background: rgb(255 255 255 / 0.18);
+  }
+  .cine__cue-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(255 255 255 / 0.85);
+    animation: cine-cue 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}
+
+@keyframes cine-cue {
+  0% { transform: translateY(-100%); }
+  65%, 100% { transform: translateY(100%); }
+}
+@keyframes cine-failsafe {
+  to { opacity: 1; }
+}
+
+/* The film. Only with JS, and only when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  .cine-js .cine__track {
+    height: var(--cine-track);
+  }
+  .cine-js .cine__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100lvh;
+  }
+  /* The steps are pulled up over the track's last screen, above the stage, so
+     they rise into the shot as it arrives; taller than a screen (phones), they
+     simply run on after it. Their shade reaches up into the shot. */
+  .cine-js .cine__steps {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 100vh;
+    min-height: 100lvh;
+    margin-top: -100vh;
+    margin-top: -100lvh;
+  }
+  .cine-js .cine__steps-inner {
+    padding-block: 3.5rem 3rem;
+  }
+  .cine-js .cine__steps-inner::before {
+    content: "";
+    position: absolute;
+    inset: -18vh 0 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgb(10 10 11 / 0), rgb(10 10 11 / 0.82) 18vh, rgb(10 10 11 / 0.94));
+  }
+  .cine-js .cine__intro {
+    inset: 0;
+    opacity: 0;
+  }
+  .cine-js .cine__title {
+    opacity: 0; /* the module brings it in with the render */
+  }
+  /* If the module never takes over (vendor files missing, very old browser),
+     the still render and title still show up rather than a dark screen. */
+  .cine-js .cine:not(.is-live) :is(.cine__intro, .cine__title) {
+    animation: cine-failsafe 0.8s 4s forwards;
+  }
+  .cine-js .cine__camera {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100%; /* replaced by the measured width JS writes */
+    transform-origin: 0 0;
+  }
+  .cine-js .cine__camera::before {
+    /* Colour sampled from the image's edges, carried with the camera: above
+       the render and past its sides on screens wider than the image. */
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--cine-above, 0px)) -60vw calc(-1 * var(--cine-below, 0px));
+    z-index: -1;
+    background: var(--cine-edges, #0d1a3a);
+  }
+  .cine-js .cine__plate {
+    height: auto;
+    object-fit: fill;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 1.5%, #000 98.5%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 1.5%, #000 98.5%, transparent);
+  }
+  .cine-js .cine__haze,
+  .cine-js .cine__cloud,
+  .cine-js .cine__fog--front {
+    display: block;
+  }
+  .cine-js .cine__ren {
+    display: grid;
+  }
+  .cine-js .cine__cue {
+    display: flex;
+  }
+  .cine-js .cine__haze,
+  .cine-js .cine__cloud,
+  .cine-js .cine__fog,
+  .cine-js .cine__ren,
+  .cine-js .cine__ground {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .cine.is-active :is(.cine__camera, .cine__sky img, .cine__cloud, .cine__ren, .cine__title) {
+    will-change: transform, opacity;
+  }
+  @media (max-width: 767px) {
+    .cine-js .cine {
+      --cine-track: 440vh;
+    }
+    .cine-js .cine__cloud--wide,
+    .cine-js .cine__sky {
+      display: none;
+    }
+  }
+}
+
+/* Over the film the title card is set tighter than the copy's defaults, so the
+   headline, buttons and stats all fit in the first frame. The eyebrow sits on
+   the crown's lit glass, so it is brighter, with a tight shadow to hold it.
+   Unlayered, like the rules below, to win over the copy's utility classes. */
+.cine__title .eyebrow {
+  color: rgb(255 255 255 / 0.8);
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.75);
+}
+.cine__title dl {
+  margin-top: 2.5rem;
+}
+.cine__title dl > div {
+  padding-block: 1rem;
+}
+.cine__title dt {
+  font-size: 1.625rem;
+  line-height: 2rem;
+}
+
+/* Phones: slimmer buttons share one row, which saves the card a line, and the
+   stat cells give their numbers the room a narrow screen leaves. */
+@media (max-width: 767px) {
+  .cine__title :is(.btn, .btn-accent) {
+    padding-inline: 1rem;
+  }
+  .cine__title dl > div {
+    padding-inline: 0.5rem;
+  }
+  .cine__title dt {
+    font-size: 1.375rem;
+  }
+}
+
+/* Short screens: the tagline goes first, and on wider ones the headline also
+   scales with the height, so the card never runs into the crown or the cue. */
+@media (min-width: 768px) and (max-height: 820px) {
+  .cine__title p:not(.eyebrow) {
+    display: none;
+  }
+  .cine__title h1 {
+    font-size: min(5.5rem, 9.5vh);
+  }
+}
+@media (max-width: 767px) and (max-height: 740px) {
+  .cine__title p:not(.eyebrow) {
+    display: none;
+  }
+}
+
+/* Phones on their side: the title keeps its headline, buttons and stats and
+   lets the eyebrow, tagline and scroll cue go, so nothing is cut off or
+   overlapping. */
+@media (max-height: 560px) {
+  .cine__title {
+    padding-block: 5.5rem 1.5rem;
+  }
+  .cine__title h1 {
+    font-size: 2.25rem;
+  }
+  .cine__title p {
+    display: none;
+  }
+  .cine__title dl {
+    margin-top: 1.25rem;
+  }
+  .cine-js .cine__cue {
+    display: none;
+  }
+}
+
+/* Header over the cinematic hero — unlayered on purpose, so it beats the
+   header's own utility classes. JS sets data-tone: "clear" over the stage,
+   "dark" over the dark stats band that follows; without it the header is
+   itself. */
+.cine-js #site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.cine-js #site-header[data-tone] {
+  border-color: transparent;
+  color: #fff;
+}
+.cine-js #site-header[data-tone="clear"] {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.cine-js #site-header[data-tone="dark"] {
+  background: rgb(10 10 11 / 0.72);
+  border-color: rgb(255 255 255 / 0.08);
+}
+.cine-js #site-header[data-tone] :is(a, nav) {
+  border-color: rgb(255 255 255 / 0.1);
+  color: rgb(255 255 255 / 0.68);
+  transition: color 0.3s ease;
+}
+.cine-js #site-header[data-tone] a:hover,
+.cine-js #site-header[data-tone] .text-ink {
+  color: #fff;
+}
+.cine-js #site-header[data-tone] .text-hairline {
+  color: rgb(255 255 255 / 0.25);
+}
+.cine-js #site-header[data-tone] .btn-accent {
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  color: #fff;
+}
+.cine-js #site-header[data-tone] .btn-accent:hover {
+  background: var(--color-accent);
+  box-shadow: none;
+}
+
+/* Motion is opt-out, per the accessibility checklist. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

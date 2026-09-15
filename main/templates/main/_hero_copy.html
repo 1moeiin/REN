@@ -1,0 +1,43 @@
+{% load i18n site_extras %}
+{% comment %}
+  Hero text — centred. `on_photo` switches to light-on-dark type for the
+  photo hero, where this is the title over the film's opening shot; without it
+  the 3D-tower fallback keeps dark type.
+
+  Stat numbers carry data-count so JS can run them up from zero. The rendered
+  text is already the final value, so with JS off nothing is lost.
+{% endcomment %}
+<div id="hero-copy" class="mx-auto flex max-w-4xl flex-col items-center text-center">
+  <p class="eyebrow justify-center {% if on_photo %}text-white/55{% endif %}">
+    {% blocktranslate with years=site.years_experience %}İnşaat sektöründe {{ years }} yıl{% endblocktranslate %}
+  </p>
+
+  <h1 class="font-display text-display font-medium {% if on_photo %}text-white{% else %}text-ink{% endif %}">
+    {% translate "Kalıcı olanı" %}<br>
+    <span class="text-accent">{% translate "inşa ediyoruz" %}</span>
+  </h1>
+
+  <p class="mt-8 max-w-xl text-lg leading-relaxed {% if on_photo %}text-white/70{% else %}text-muted-foreground{% endif %}">
+    {{ site|t:"tagline" }}
+  </p>
+
+  <div class="mt-10 flex flex-wrap justify-center gap-3">
+    <a href="{% url 'main:project_list' %}" class="btn-accent">{% translate "Projeleri İnceleyin" %}</a>
+    <a href="{% url 'main:contact' %}"
+       class="{% if on_photo %}btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20{% else %}btn-ghost{% endif %}">
+      {% translate "Danışmanlık Alın" %}
+    </a>
+  </div>
+
+  <dl class="mt-16 grid w-full max-w-2xl grid-cols-3 gap-px overflow-hidden
+             {% if on_photo %}bg-white/15{% else %}bg-border{% endif %}">
+    {% for value, suffix, label in stats %}
+      <div class="px-5 py-6 backdrop-blur {% if on_photo %}bg-white/5{% else %}bg-background/85{% endif %}">
+        <dt class="font-display text-3xl font-semibold tracking-[-0.04em] {% if on_photo %}text-white{% else %}text-ink{% endif %}">
+          <span data-count="{{ value }}" data-suffix="{{ suffix }}">{{ value|floatformat:"0g" }}{{ suffix }}</span>
+        </dt>
+        <dd class="mt-2 text-xs leading-snug {% if on_photo %}text-white/55{% else %}text-muted-foreground{% endif %}">{{ label }}</dd>
+      </div>
+    {% endfor %}
+  </dl>
+</div>

@@ -1,0 +1,37 @@
+{% load i18n site_extras %}
+{% comment %}
+  Drag-to-compare slider. The "after" image sits on top and is clipped by
+  inset() from the right; dragging the handle rewrites that clip.
+  JS enhances it — with JS off the after image simply shows in full.
+{% endcomment %}
+<figure class="ba" data-ba>
+  <div class="ba__stage relative aspect-16/10 w-full cursor-ew-resize overflow-hidden select-none">
+    <img src="{{ project.before_image.url }}" alt="{% translate 'Öncesi' %}"
+         class="pointer-events-none absolute inset-0 h-full w-full object-cover" draggable="false">
+
+    <div class="ba__after pointer-events-none absolute inset-0" style="clip-path: inset(0 0 0 50%);">
+      <img src="{{ project.after_image.url }}" alt="{% translate 'Sonrası' %}"
+           class="h-full w-full object-cover" draggable="false">
+    </div>
+
+    <span class="ba__label pointer-events-none absolute top-4 left-4 bg-ink/75 px-3 py-1 font-mono text-[0.65rem] tracking-widest text-white uppercase backdrop-blur">
+      {% translate "Öncesi" %}
+    </span>
+    <span class="ba__label pointer-events-none absolute top-4 right-4 bg-accent px-3 py-1 font-mono text-[0.65rem] tracking-widest text-white uppercase">
+      {% translate "Sonrası" %}
+    </span>
+
+    <div class="ba__handle absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 bg-white/90 shadow-[0_0_20px_rgb(0_0_0/0.5)]">
+      <span class="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/70 bg-white/20 backdrop-blur">
+        <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 6 3 12l6 6M15 6l6 6-6 6"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+
+  <figcaption class="mt-4 text-center font-mono text-[0.7rem] tracking-wide text-muted-foreground">
+    {% translate "Karşılaştırmak için sürükleyin" %}
+  </figcaption>
+</figure>

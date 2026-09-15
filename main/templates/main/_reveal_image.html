@@ -1,0 +1,37 @@
+{% comment %}
+  Reveal-image mask — a port of the 21st.dev React component to this stack.
+
+  The original used framer-motion's useScroll/useSpring/useTransform to drive a
+  clip-path. Same idea here with GSAP ScrollTrigger, which the project already
+  loads: the mask blooms from a small shape to the full frame as the section
+  crosses the viewport.
+
+  The wordmark sits OUTSIDE the clipped frame so the mask doesn't cut it — it
+  fades in on its own scroll range, layered over the opening image.
+
+  Params: src, alt, title, caption (optional), shape ("circle" | "rounded"),
+          word (wordmark text, defaults to REN).
+  Reduced motion is handled in the JS, which leaves both fully resolved.
+{% endcomment %}
+<div class="reveal-mask" data-shape="{{ shape|default:'circle' }}">
+  <div class="mx-auto mb-10 max-w-3xl">
+    <p class="eyebrow justify-center">{{ eyebrow|default:"Proje" }}</p>
+    <h3 class="font-display text-3xl leading-[1.05] font-medium tracking-[-0.04em] text-ink md:text-5xl">{{ title }}</h3>
+    {% if caption %}
+      <p class="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">{{ caption }}</p>
+    {% endif %}
+  </div>
+
+  <div class="relative">
+    <div class="reveal-mask__frame aspect-16/10 overflow-hidden">
+      <img src="{{ src }}" alt="{{ alt }}" loading="lazy" class="h-full w-full object-cover">
+    </div>
+
+    <div class="reveal-mask__word pointer-events-none absolute inset-0 grid place-items-center">
+      <span class="font-display text-[clamp(3.5rem,16vw,14rem)] leading-none font-bold tracking-[-0.06em]
+                   text-white [text-shadow:0_2px_40px_rgb(0_0_0/0.45)]">
+        {{ word|default:"REN" }}
+      </span>
+    </div>
+  </div>
+</div>

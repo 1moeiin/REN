@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n site_extras %}
+
+{% block title %}İletişim — {{ site.company_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container-x grid gap-16 lg:grid-cols-2">
+
+    <div>
+      <p class="eyebrow">{% translate "İletişim" %}</p>
+      <h1 class="h2">{% translate "Hizmetinizdeyiz" %}</h1>
+      <p class="mt-8 max-w-md leading-relaxed text-muted-foreground">
+        {% translate "Formu doldurun ya da doğrudan bize ulaşın. İlk iş gününde size dönüş yapıyoruz." %}
+      </p>
+
+      <dl class="mt-12 divide-y divide-hairline border-t border-b border-hairline">
+        {% if site.phone %}
+          <div class="flex items-baseline justify-between gap-4 py-5">
+            <dt class="font-mono text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase">{% translate "Telefon" %}</dt>
+            <dd><a href="tel:{{ site.phone }}" class="text-lg text-ink transition hover:text-accent">{{ site.phone }}</a></dd>
+          </div>
+        {% endif %}
+        {% if site.email %}
+          <div class="flex items-baseline justify-between gap-4 py-5">
+            <dt class="font-mono text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase">{% translate "E-posta" %}</dt>
+            <dd><a href="mailto:{{ site.email }}" class="text-lg text-ink transition hover:text-accent">{{ site.email }}</a></dd>
+          </div>
+        {% endif %}
+        {% if site.address %}
+          <div class="flex items-baseline justify-between gap-4 py-5">
+            <dt class="font-mono text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase">{% translate "Adres" %}</dt>
+            <dd class="max-w-xs text-right leading-relaxed text-ink">{{ site.address }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <form method="post" novalidate class="border border-hairline bg-card p-8 sm:p-10">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <p class="mb-6 border-l-2 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.non_field_errors }}</p>
+      {% endif %}
+
+      <div class="space-y-6">
+        {% for field in form %}
+          <div>
+            <label for="{{ field.id_for_label }}"
+                   class="mb-2 block font-mono text-[0.7rem] tracking-[0.2em] text-muted-foreground uppercase">
+              {{ field.label }}{% if field.field.required %} <span class="text-accent">*</span>{% endif %}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+              {# Errors sit next to their field, not collected at the top. #}
+              <p class="mt-2 text-sm text-red-600">{{ field.errors|first }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn-accent mt-8 w-full">{% translate "Mesajı gönder" %}</button>
+    </form>
+
+  </div>
+</section>
+{% endblock %}

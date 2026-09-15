@@ -1,0 +1,23 @@
+{% comment %}
+  Inline SVG icons (Lucide outlines) keyed by Service.icon — no emoji, no icon
+  font, no extra request. Usage: {% include "main/_icon.html" with name="crane" %}
+{% endcomment %}
+<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+     aria-hidden="true" focusable="false">
+  {% if name == "crane" %}
+    <path d="M7 21V3l13 4"/><path d="M7 7h13"/><path d="M14 7v5"/><path d="M11 12h6l-3 5z"/><path d="M3 21h8"/>
+  {% elif name == "ruler" %}
+    <path d="M3 15 15 3l6 6L9 21z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/>
+  {% elif name == "wrench" %}
+    <path d="M14.7 6.3a4 4 0 1 0 5 5L21 21H10.5L4 14.5a4 4 0 0 1 5-5z"/>
+  {% elif name == "hardhat" %}
+    <path d="M2 17h20"/><path d="M4 17v-3a8 8 0 0 1 16 0v3"/><path d="M10 6V4h4v2"/>
+  {% elif name == "leaf" %}
+    <path d="M11 20A7 7 0 0 1 4 13c0-6 7-9 16-9 0 9-4 16-9 16z"/><path d="M4 20 20 4"/>
+  {% else %}
+    {# building — the default #}
+    <path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/>
+    <path d="M8 7h2M8 11h2M8 15h2"/><path d="M2 21h20"/>
+  {% endif %}
+</svg>

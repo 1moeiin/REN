@@ -1,0 +1,30 @@
+{% load i18n site_extras %}
+{% comment %}
+  Services grid. `glass` renders it as a frosted panel meant to sit over the
+  hero photo; without it, the plain light version on the page background.
+{% endcomment %}
+<div class="container-x text-center">
+  <p class="eyebrow justify-center {% if glass %}text-white/55{% endif %}">{% translate "Hizmetlerimiz" %}</p>
+  <h2 class="h2 mx-auto max-w-3xl {% if glass %}!text-white{% endif %}">{% translate "Tasarımdan anahtar teslimine" %}</h2>
+
+  <div class="mx-auto mt-16 grid max-w-6xl gap-px overflow-hidden sm:grid-cols-2 lg:grid-cols-3
+              {% if glass %}rounded-3xl border border-white/15 bg-white/15 shadow-2xl shadow-black/30{% else %}bg-border{% endif %}">
+    {% for service in services %}
+      <article {% if not glass %}data-rise{% endif %}
+               class="group flex flex-col items-center px-8 py-12 transition
+                      {% if glass %}bg-white/5 backdrop-blur-xl hover:bg-white/10{% else %}bg-background hover:bg-card{% endif %}">
+        <span class="index-num">{{ forloop.counter|stringformat:"02d" }}</span>
+        <span class="mt-6 transition {% if glass %}text-white/60 group-hover:text-accent{% else %}text-muted-foreground group-hover:text-accent{% endif %}">
+          {% include "main/_icon.html" with name=service.icon %}
+        </span>
+        <h3 class="mt-6 text-xl font-medium {% if glass %}text-white{% else %}text-ink{% endif %}">{{ service|t:"title" }}</h3>
+        <p class="mt-3 text-sm leading-relaxed {% if glass %}text-white/65{% else %}text-muted-foreground{% endif %}">{{ service|t:"summary" }}</p>
+      </article>
+    {% endfor %}
+  </div>
+
+  <a href="{% url 'main:service_list' %}"
+     class="{% if glass %}btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20{% else %}btn-ghost{% endif %} mt-14">
+    {% translate "Tüm hizmetler" %}
+  </a>
+</div>

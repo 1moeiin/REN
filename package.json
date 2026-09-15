@@ -1,0 +1,25 @@
+{
+  "name": "ren",
+  "version": "1.0.0",
+  "description": "REN — Django 6 + Tailwind 4 + GSAP + Three.js",
+  "scripts": {
+    "sync:vendor": "node scripts/sync-vendor.mjs",
+    "postinstall": "node scripts/sync-vendor.mjs",
+    "css:dev": "tailwindcss -i ./static/src/input.css -o ./static/css/output.css --watch",
+    "css:build": "tailwindcss -i ./static/src/input.css -o ./static/css/output.css --minify",
+    "build": "npm run sync:vendor && npm run css:build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "three": "^0.185.1"
+  },
+  "private": true
+}

@@ -1,0 +1,223 @@
+{% load static i18n site_extras %}
+{% get_current_language as LANG %}
+<!doctype html>
+<html lang="{{ LANG }}" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {% block meta %}
+    <title>{% block title %}{{ site.company_name }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}{{ site|t:'tagline' }}{% endblock %}">
+  {% endblock %}
+
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  {% comment %}
+    hreflang tells search engines these are the same page in two languages,
+    rather than duplicate content competing with itself.
+  {% endcomment %}
+  {% for code, label in LANGUAGES %}
+    <link rel="alternate" hreflang="{{ code }}"
+          href="{{ request.scheme }}://{{ request.get_host }}{% switch_language_url code %}">
+  {% endfor %}
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site.company_name }}">
+  <meta property="og:locale" content="{{ LANG }}">
+  <meta property="og:title" content="{% block og_title %}{{ site.company_name }}{% endblock %}">
+  <meta property="og:description" content="{{ site|t:'tagline' }}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  {% block og_image %}
+    {% if site.hero_image %}
+      <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site.hero_image.url }}">
+    {% endif %}
+  {% endblock %}
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+  {% comment %}
+    Import map lets templates write `import * as THREE from "three"` with no
+    bundler. Paths resolve to static/vendor/, filled by `npm run sync:vendor`.
+  {% endcomment %}
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "{% static 'vendor/three/three.module.js' %}",
+      "three/addons/": "{% static 'vendor/three/addons/' %}",
+      "gsap": "{% static 'vendor/gsap/index.js' %}",
+      "gsap/": "{% static 'vendor/gsap/' %}"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "GeneralContractor",
+    "name": "{{ site.company_name|escapejs }}",
+    "description": "{{ site|t:'tagline'|escapejs }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
+    {% if site.phone %}"telephone": "{{ site.phone|escapejs }}",{% endif %}
+    {% if site.email %}"email": "{{ site.email|escapejs }}",{% endif %}
+    {% if site.hero_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ site.hero_image.url }}",{% endif %}
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ site.address|escapejs }}",
+      "addressLocality": "İstanbul",
+      "addressCountry": "TR"
+    }
+  }
+  </script>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="flex min-h-screen flex-col font-sans">
+
+  <header id="site-header" class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+    <div class="container-x flex h-20 items-center justify-between gap-6">
+      <a href="{% url 'main:home' %}" class="group flex items-baseline gap-2">
+        {# Just the brand mark ("REN Yapı" → "REN"); the full name stays in the title, footer and structured data. #}
+        <span class="font-display text-2xl font-bold tracking-[-0.06em] text-ink">{{ site.company_name.split.0|default:"REN" }}</span>
+        <span class="h-1.5 w-1.5 rounded-full bg-accent transition group-hover:scale-150"></span>
+      </a>
+
+      {% url 'main:home' as u_home %}
+      {% url 'main:project_list' as u_projects %}
+      {% url 'main:service_list' as u_services %}
+      {% url 'main:about' as u_about %}
+
+      <nav class="hidden items-center gap-9 text-sm md:flex">
+        <a href="{{ u_home }}" class="transition hover:text-ink {% if request.path == u_home %}text-ink{% else %}text-muted-foreground{% endif %}">{% translate "Ana Sayfa" %}</a>
+        <a href="{{ u_projects }}" class="transition hover:text-ink {% if u_projects in request.path %}text-ink{% else %}text-muted-foreground{% endif %}">{% translate "Projeler" %}</a>
+        <a href="{{ u_services }}" class="transition hover:text-ink {% if request.path == u_services %}text-ink{% else %}text-muted-foreground{% endif %}">{% translate "Hizmetler" %}</a>
+        <a href="{{ u_about }}" class="transition hover:text-ink {% if request.path == u_about %}text-ink{% else %}text-muted-foreground{% endif %}">{% translate "Hakkımızda" %}</a>
+      </nav>
+
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-1 font-mono text-[0.7rem] tracking-widest uppercase">
+          {% for code, label in LANGUAGES %}
+            <a href="{% switch_language_url code %}"
+               class="px-1.5 py-1 transition {% if code == LANG %}text-ink{% else %}text-muted-foreground hover:text-ink{% endif %}">{{ code }}</a>
+            {% if not forloop.last %}<span class="text-hairline">/</span>{% endif %}
+          {% endfor %}
+        </div>
+        <a href="{% url 'main:contact' %}" class="btn-accent px-5 py-2.5 text-xs">{% translate "İletişim" %}</a>
+      </div>
+    </div>
+
+    <nav class="container-x flex gap-6 overflow-x-auto border-t border-border py-3 text-sm text-muted-foreground md:hidden">
+      <a href="{{ u_home }}" class="shrink-0 transition hover:text-ink">{% translate "Ana Sayfa" %}</a>
+      <a href="{{ u_projects }}" class="shrink-0 transition hover:text-ink">{% translate "Projeler" %}</a>
+      <a href="{{ u_services }}" class="shrink-0 transition hover:text-ink">{% translate "Hizmetler" %}</a>
+      <a href="{{ u_about }}" class="shrink-0 transition hover:text-ink">{% translate "Hakkımızda" %}</a>
+    </nav>
+  </header>
+
+  {% if messages %}
+    <div class="container-x pt-8">
+      {% for message in messages %}
+        <div role="status" class="border-l-2 border-accent bg-accent/5 px-5 py-4 text-sm text-ink">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-auto bg-ink text-white/60">
+    <div class="container-x py-20">
+      <div class="grid gap-14 lg:grid-cols-[1.5fr_1fr_1fr]">
+        <div>
+          <p class="font-display text-5xl font-bold tracking-[-0.06em] text-white sm:text-7xl">
+            {# Brand mark only, as in the header; the full name stays in the copyright line. #}
+            {{ site.company_name.split.0|default:"REN" }}<span class="text-accent">.</span>
+          </p>
+          <p class="mt-6 max-w-sm text-sm leading-relaxed">{{ site|t:"tagline" }}</p>
+        </div>
+
+        <div>
+          <h3 class="mb-5 font-mono text-[0.7rem] tracking-[0.25em] text-white/40 uppercase">{% translate "Menü" %}</h3>
+          <ul class="space-y-3 text-sm">
+            <li><a href="{{ u_projects }}" class="transition hover:text-accent">{% translate "Projeler" %}</a></li>
+            <li><a href="{{ u_services }}" class="transition hover:text-accent">{% translate "Hizmetler" %}</a></li>
+            <li><a href="{{ u_about }}" class="transition hover:text-accent">{% translate "Hakkımızda" %}</a></li>
+            <li><a href="{% url 'main:contact' %}" class="transition hover:text-accent">{% translate "İletişim" %}</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="mb-5 font-mono text-[0.7rem] tracking-[0.25em] text-white/40 uppercase">{% translate "İletişim" %}</h3>
+          <ul class="space-y-3 text-sm">
+            {% if site.phone %}<li><a href="tel:{{ site.phone }}" class="transition hover:text-accent">{{ site.phone }}</a></li>{% endif %}
+            {% if site.email %}<li><a href="mailto:{{ site.email }}" class="transition hover:text-accent">{{ site.email }}</a></li>{% endif %}
+            {% if site.address %}<li class="max-w-xs leading-relaxed">{{ site.address }}</li>{% endif %}
+          </ul>
+          {% if site.instagram or site.linkedin %}
+            <div class="mt-6 flex gap-4 text-sm">
+              {% if site.instagram %}<a href="{{ site.instagram }}" target="_blank" rel="noopener" class="transition hover:text-accent">Instagram</a>{% endif %}
+              {% if site.linkedin %}<a href="{{ site.linkedin }}" target="_blank" rel="noopener" class="transition hover:text-accent">LinkedIn</a>{% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-16 flex flex-col gap-3 border-t border-white/10 pt-8 text-xs sm:flex-row sm:items-center sm:justify-between">
+        <span>© {% now "Y" %} {{ site.company_name }}. {% translate "Tüm hakları saklıdır." %}</span>
+        <span class="font-mono tracking-widest text-white/30 uppercase">İstanbul, Türkiye</span>
+      </div>
+    </div>
+  </footer>
+
+  {% if site.whatsapp %}
+    <a href="https://wa.me/{{ site.whatsapp }}" target="_blank" rel="noopener"
+       aria-label="WhatsApp"
+       class="fixed right-5 bottom-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/20 transition hover:scale-110">
+      <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884a9.82 9.82 0 0 1 6.988 2.898 9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.8 11.8 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.548 4.142 1.588 5.945L.057 24l6.305-1.654a11.9 11.9 0 0 0 5.688 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.82 11.82 0 0 0 20.465 3.49"/>
+      </svg>
+    </a>
+  {% endif %}
+
+  {% comment %}
+    KVKK notice — required for a Turkish site. Dismissal is stored per browser,
+    so the wrapper stays hidden="true" until JS decides; that way it never
+    flashes for someone who already accepted.
+  {% endcomment %}
+  <div id="kvkk" hidden
+       class="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-3xl border border-hairline bg-card p-5 shadow-2xl shadow-black/10 sm:flex sm:items-center sm:gap-6">
+    <p class="text-sm leading-relaxed text-muted-foreground">
+      {% translate "Bu site, deneyiminizi iyileştirmek için zorunlu çerezler kullanır. Detaylar için KVKK aydınlatma metnimize bakabilirsiniz." %}
+    </p>
+    <button type="button" id="kvkk-ok" class="btn-accent mt-4 shrink-0 px-6 py-2.5 text-xs sm:mt-0">
+      {% translate "Tamam" %}
+    </button>
+  </div>
+
+  <script>
+    // Plain script, not a module: this must run before paint so the banner
+    // never flashes for a visitor who already dismissed it.
+    (function () {
+      var box = document.getElementById("kvkk");
+      if (!box) return;
+      var KEY = "kvkk-ok";
+      try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
+      box.hidden = false;
+      document.getElementById("kvkk-ok").addEventListener("click", function () {
+        box.hidden = true;
+        try { localStorage.setItem(KEY, "1"); } catch (e) {}
+      });
+    })();
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

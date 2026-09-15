@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}404 — {{ site.company_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container-x flex min-h-[50vh] flex-col items-center justify-center text-center">
+    <p class="font-display text-[clamp(5rem,20vw,14rem)] leading-none font-bold tracking-[-0.06em] text-hairline">404</p>
+    <h1 class="mt-6 font-display text-3xl font-medium text-ink sm:text-4xl">
+      {% translate "Aradığınız sayfa bulunamadı" %}
+    </h1>
+    <p class="mt-5 max-w-md leading-relaxed text-muted-foreground">
+      {% translate "Bağlantı taşınmış veya hiç var olmamış olabilir. Aşağıdan devam edebilirsiniz." %}
+    </p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'main:home' %}" class="btn-accent">{% translate "Ana sayfa" %}</a>
+      <a href="{% url 'main:project_list' %}" class="btn-ghost">{% translate "Projeler" %}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

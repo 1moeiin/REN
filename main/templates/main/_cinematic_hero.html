@@ -1,0 +1,128 @@
+{% load static i18n site_extras %}
+{% comment %}
+  Cinematic hero: one continuous camera move down the building, scrubbed by
+  scroll. home.html includes this when a hero image is uploaded; the motion
+  lives in static/js/cinematic-hero.js, and this file is only the set.
+
+  .cine__track is the scroll track, and its height is the length of the shot.
+  The stage inside it is CSS-sticky rather than JS-pinned, so touch scrolling
+  stays native. Layers, back to front:
+
+    camera    the render (#hero-photo), carried past its own edges in colours
+              sampled from the image (so ultra-wide screens still read as
+              sky), plus a sky-only copy JS adds on larger screens that drifts
+              slower than the tower — the parallax that makes one flat image
+              feel deep
+    haze      atmosphere that thickens as the camera nears the cloud layer
+    clouds    far banks → wordmark → fog → mid banks → near veils, so REN sits
+              inside the clouds and is genuinely occluded by them
+    grade     vignette, and the ground fade the shot settles into
+    title     the headline, calls to action and stats (_hero_copy.html), set
+              in the sky above the clouds: they ride up with it as the descent
+              begins and are gone before the deck
+
+  The steps (_process.html) come after the track but are pulled up over its
+  last screen, so below the clouds they rise into the shot as the camera
+  reaches the entrance, then carry on up the page. They scroll natively, so
+  however long they run on a phone they never reach back into the clouds.
+
+  Without the film (no JS, reduced motion) the stage is one still screen, the
+  render with the title over it, and the steps simply follow it on ink.
+
+  The --cine-* fractions describe this particular render: the tower's flanks,
+  the crown and the horizon (for the sky mask). data-focus-end is the height of
+  the entrance, where the shot comes to rest. Retune them if the photo changes;
+  the sky drift also switches itself off when the image has no clean sky where
+  the mask expects it, so a different photo degrades gracefully.
+
+  Clouds are lazy with low fetch priority: they never compete with the render
+  for first paint, and CSS keeps them display:none wherever they won't animate
+  (reduced motion, no JS), so those visitors never download them.
+{% endcomment %}
+<script>
+  /* Runs before first paint. Opts the page into the film — its CSS is gated on
+     .cine-js, so without JS the still hero shows instead — and keeps the header
+     in step with what is under it: clear over the stage, dark over the steps,
+     its normal self after. A plain script rather than part of the module, so
+     the header can never be left white-on-white if the module fails to load;
+     an IntersectionObserver, so it only wakes at boundaries. */
+  document.documentElement.classList.add("cine-js");
+  (function () {
+    var header = document.getElementById("site-header");
+    if (!header) return;
+    header.setAttribute("data-tone", "clear");
+    document.addEventListener("DOMContentLoaded", function () {
+      var zones = document.querySelectorAll("[data-header-tone]");
+      if (!zones.length || !("IntersectionObserver" in window)) return;
+      var under = new Map();
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { under.set(e.target, e.isIntersecting); });
+        var tone = null;
+        zones.forEach(function (z) { if (under.get(z)) tone = z.getAttribute("data-header-tone"); });
+        if (tone) header.setAttribute("data-tone", tone);
+        else header.removeAttribute("data-tone");
+      }, { rootMargin: "0px 0px -92% 0px" });
+      zones.forEach(function (z) { io.observe(z); });
+    });
+  })();
+</script>
+<section id="hero" class="cine" data-header-tone="clear" data-focus-end="0.86"
+         style="--cine-tower-l: 25.6%; --cine-tower-r: 76.2%; --cine-crown: 5.4%; --cine-horizon: 44%;">
+  <div class="cine__track">
+    <div class="cine__stage">
+      <div class="cine__intro">
+        <div class="cine__camera">
+          <picture>
+            {% if site.hero_image|webp %}
+              <source srcset="{{ site.hero_image|webp }}" type="image/webp">
+            {% endif %}
+            <img id="hero-photo" class="cine__plate" src="{{ site.hero_image.url }}" alt=""
+                 fetchpriority="high" decoding="async">
+          </picture>
+        </div>
+      </div>
+
+      <div class="cine__haze" aria-hidden="true"></div>
+
+      <div class="cine__clouds" aria-hidden="true">
+        <img class="cine__cloud" data-cloud="far-l" src="{% static 'img/cine/cloud-bank-b.webp' %}"
+             width="1600" height="900" alt="" loading="lazy" fetchpriority="low" decoding="async">
+        <img class="cine__cloud cine__cloud--wide" data-cloud="far-r" src="{% static 'img/cine/cloud-bank-b.webp' %}"
+             width="1600" height="900" alt="" loading="lazy" fetchpriority="low" decoding="async">
+        <div class="cine__fog cine__fog--back"></div>
+
+        <p class="cine__ren"><span>{{ site.company_name.split.0|default:"REN" }}</span></p>
+
+        <div class="cine__fog cine__fog--front"></div>
+        <img class="cine__cloud" data-cloud="mid-l" src="{% static 'img/cine/cloud-bank-a.webp' %}"
+             width="1600" height="900" alt="" loading="lazy" fetchpriority="low" decoding="async">
+        <img class="cine__cloud cine__cloud--wide" data-cloud="mid-r" src="{% static 'img/cine/cloud-bank-a.webp' %}"
+             width="1600" height="900" alt="" loading="lazy" fetchpriority="low" decoding="async">
+        <img class="cine__cloud" data-cloud="near-l" src="{% static 'img/cine/cloud-veil.webp' %}"
+             width="1200" height="1000" alt="" loading="lazy" fetchpriority="low" decoding="async">
+        <img class="cine__cloud cine__cloud--wide" data-cloud="near-r" src="{% static 'img/cine/cloud-veil.webp' %}"
+             width="1200" height="1000" alt="" loading="lazy" fetchpriority="low" decoding="async">
+      </div>
+
+      <div class="cine__grade" aria-hidden="true"></div>
+      <div class="cine__ground" aria-hidden="true"></div>
+
+      <div class="cine__title">
+        {% include "main/_hero_copy.html" with on_photo=True %}
+      </div>
+
+      <div class="cine__cue" aria-hidden="true">
+        <span>{% translate "Kaydırın" %}</span>
+        <span class="cine__cue-line"></span>
+      </div>
+    </div>
+  </div>
+
+  {% if steps %}
+    <div class="cine__steps" data-header-tone="dark">
+      <div class="cine__steps-inner">
+        {% include "main/_process.html" with on_photo=True %}
+      </div>
+    </div>
+  {% endif %}
+</section>

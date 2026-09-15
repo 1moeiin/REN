@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+  Trust signals: client logos and certificates. Logos are greyed back and come
+  to full colour on hover so the wall reads as one texture, not a rainbow.
+{% endcomment %}
+<div class="container-x text-center">
+  {% if clients %}
+    <p class="eyebrow justify-center">{% translate "Referanslarımız" %}</p>
+    <h2 class="h2 mx-auto max-w-3xl">{% translate "Birlikte çalıştığımız kurumlar" %}</h2>
+
+    <ul class="mx-auto mt-16 grid max-w-5xl grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-5">
+      {% for ref in clients %}
+        <li class="flex items-center justify-center bg-background px-6 py-10">
+          {% if ref.url %}<a href="{{ ref.url }}" target="_blank" rel="noopener" class="block">{% endif %}
+          {% if ref.logo %}
+            <img src="{{ ref.logo.url }}" alt="{{ ref.name }}" loading="lazy"
+                 class="h-10 w-auto opacity-50 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0">
+          {% else %}
+            <span class="font-display text-lg font-medium text-muted-foreground">{{ ref.name }}</span>
+          {% endif %}
+          {% if ref.url %}</a>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if certificates %}
+    <ul class="mx-auto mt-14 flex max-w-4xl flex-wrap justify-center gap-3">
+      {% for ref in certificates %}
+        <li class="flex items-center gap-2 rounded-full border border-hairline px-5 py-2.5 text-sm text-muted-foreground">
+          <svg class="h-4 w-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/>
+          </svg>
+          {{ ref.name }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

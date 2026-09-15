@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n site_extras %}
+
+{% block title %}Hakkımızda — {{ site.company_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container-x">
+    <p class="eyebrow">{% translate "Hakkımızda" %}</p>
+    <h1 class="h2 max-w-3xl">{{ site.company_name }}</h1>
+
+    <div class="mt-16 grid gap-16 lg:grid-cols-[1.6fr_1fr]">
+      <div>
+        {% if site.about %}
+          <div class="space-y-6 text-lg leading-relaxed text-muted-foreground">{{ site|t:"about"|linebreaks }}</div>
+        {% else %}
+          <p class="text-muted-foreground">
+            {% translate "Şirket tanıtım metnini yönetim panelindeki «Site ayarları» bölümünden girebilirsiniz." %}
+          </p>
+        {% endif %}
+      </div>
+
+      <dl class="divide-y divide-hairline border-t border-b border-hairline">
+        <div class="flex items-baseline justify-between py-6">
+          <dt class="text-sm text-muted-foreground">{% translate "Deneyim" %}</dt>
+          <dd class="font-display text-4xl font-semibold tracking-[-0.04em] text-ink">{{ site.years_experience }}+</dd>
+        </div>
+        <div class="flex items-baseline justify-between py-6">
+          <dt class="text-sm text-muted-foreground">{% translate "Tamamlanan proje" %}</dt>
+          <dd class="font-display text-4xl font-semibold tracking-[-0.04em] text-ink">{{ site.projects_done }}+</dd>
+        </div>
+        <div class="flex items-baseline justify-between py-6">
+          <dt class="text-sm text-muted-foreground">{% translate "İnşa edilen alan" %}</dt>
+          <dd class="font-display text-4xl font-semibold tracking-[-0.04em] text-ink">{{ site.area_built }} m²</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+{% endblock %}

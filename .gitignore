@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+
+# Django collected output
+/staticfiles/
+/media/
+
+# Node
+node_modules/
+
+# Generated — rebuild with `npm run build`
+/static/vendor/
+/static/css/output.css
+
+# Env / editors
+.env
+.idea/
+.vscode/
+
+# Local Claude Code config
+.claude/
